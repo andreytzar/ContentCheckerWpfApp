@@ -1,0 +1,34 @@
+﻿<Window x:Class="ContentCheckerWpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ContentCheckerWpfApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Menu>
+            <MenuItem Header="Scan">
+                <MenuItem x:Name="MIFullSiteScan" Header="Full site scan" Click="MIFullSiteScan_Click"/>
+                <MenuItem x:Name="MIStopScan" Header="Stop scan" Click="MIStopScan_Click" />
+                <MenuItem x:Name="MIContinueScan" Header="Start scan" Click="MIContinueScan_Click"/>
+            </MenuItem>
+            <MenuItem Header="Data">
+                <MenuItem x:Name="MILoadSites" Header="LoadSites" Click="MILoadSites_Click" />
+                <MenuItem x:Name="MILoadPages" Header="LoadPages" Click="MILoadPages_Click" />
+                <MenuItem x:Name="MILoadLinks" Header="LoadLinks" Click="MILoadLinks_Click" />
+                <Separator />
+                <MenuItem x:Name="MIDeleteSite" Header="Delete Site" Click="MIDeleteSite_Click"  />
+            </MenuItem>
+        </Menu>
+        <DataGrid x:Name="dataGrid" Grid.Row="1"/>
+        <StatusBar Grid.Row="2">
+            <StatusBarItem x:Name="SBStatus"/>
+        </StatusBar>
+    </Grid>
+</Window>

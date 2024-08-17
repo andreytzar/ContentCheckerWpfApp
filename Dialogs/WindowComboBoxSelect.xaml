@@ -1,0 +1,24 @@
+﻿<Window x:Class="ContentCheckerWpfApp.Dialogs.WindowComboBoxSelect"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ContentCheckerWpfApp.Dialogs"
+        mc:Ignorable="d"
+        Title="WindowComboBoxSelect" Height="200" Width="300">
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <DockPanel LastChildFill="False">
+            <TextBlock x:Name="TXT" DockPanel.Dock="Top"/>
+            <ComboBox x:Name="CMBSelect" DockPanel.Dock="Top"/>
+        </DockPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button x:Name="BTNOk" Content="OK" Width="50" Click="BTNOk_Click" IsDefault="True"/>
+            <Button x:Name="BTNCancell" Content="Cancel" Width="50" Margin="50,0,0,0" IsCancel="True" Click="BTNCancell_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
