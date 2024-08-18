@@ -40,8 +40,45 @@ namespace ContentCheckerWpfApp
         {    
             foreach (var vmProp in vmProps.Where(x => !string.IsNullOrEmpty(x.Filter)))
             {
-                string filterCondition = $"{vmProp.ToString()}.Contains(@0)";
-                query = query.Where(filterCondition, vmProp.Filter);
+                string propertyName = vmProp.PropertyInfo!.Name;
+                string filterValue = vmProp.Filter;
+
+                if (vmProp.PropertyInfo.PropertyType == typeof(string))
+                {
+                    query = query.Where($"{propertyName}.Contains(@0)", filterValue);
+                }
+                else if (vmProp.PropertyInfo.PropertyType == typeof(int) || vmProp.PropertyInfo.PropertyType == typeof(int?))
+                {
+                    if (int.TryParse(filterValue, out int intValue))
+                    {
+                        query = query.Where($"{propertyName} == @0", intValue);
+                    }
+                }
+                else if (vmProp.PropertyInfo.PropertyType == typeof(decimal) || vmProp.PropertyInfo.PropertyType == typeof(decimal?))
+                {
+                    if (decimal.TryParse(filterValue, out decimal decimalValue))
+                    {
+                        query = query.Where($"{propertyName} == @0", decimalValue);
+                    }
+                }
+                else if (vmProp.PropertyInfo.PropertyType == typeof(bool) || vmProp.PropertyInfo.PropertyType == typeof(bool?))
+                {
+                    if (bool.TryParse(filterValue, out bool boolValue))
+                    {
+                        query = query.Where($"{propertyName} == @0", boolValue);
+                    }
+                }
+                else if (vmProp.PropertyInfo.PropertyType == typeof(DateTime) || vmProp.PropertyInfo.PropertyType == typeof(DateTime?))
+                {
+                    if (DateTime.TryParse(filterValue, out DateTime dateTimeValue))
+                    {
+                        query = query.Where($"{propertyName} == @0", dateTimeValue);
+                    }
+                }
+                else
+                {
+                    query = query.Where($"{propertyName}.ToString() == @0", filterValue);
+                }
             }
             string select =string.Join(", ", vmProps.Where(x=>x.Show).Select(x => x.ToString()).ToArray());
             return query.Select($"new({select})").Cast<object>(); 
