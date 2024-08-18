@@ -38,7 +38,7 @@ namespace ContentCheckerWpfApp.Models.DB
         private int _StatusCode { get; set; }
         private DateTime? _Scanned { get; set; } = null;
 
-
+        public override string ToString() => PathAndQuary;
 
         public virtual ObservableCollection<Link> Links { get; set; } = new();
 

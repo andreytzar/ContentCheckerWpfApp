@@ -15,7 +15,7 @@ namespace ContentCheckerWpfApp.Models.DB
         public string CurrentPage { get; set; } = string.Empty;
         public virtual ObservableCollection<Page> Pages { get; set; } = new();
         public virtual ObservableCollection<Link> Links { get; set; } = new();
-     
+        public override string ToString() => AbsoluteUri;
         public Site(string url)
         {
             Url= url.ToLower();
@@ -25,11 +25,6 @@ namespace ContentCheckerWpfApp.Models.DB
             Scheme = uri.Scheme;
             Port = string.IsNullOrEmpty(uri.Port.ToString())?"":$":{uri.Port}";
             AbsoluteUri=UriHelper.GetSiteUri(url);
-        }
-
-        public override string ToString()
-        {
-            return AbsoluteUri;
         }
     }
 }

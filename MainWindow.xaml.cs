@@ -219,14 +219,38 @@ namespace ContentCheckerWpfApp
                     context.Update(link);
                 }
                 await context.SaveChangesAsync();
-                var liststat=site.Links.Select(x=>x.LinkStatus).Distinct().ToList();
-                string result="";
-                foreach(var item in liststat)
+                var liststat = site.Links.Select(x => x.LinkStatus).Distinct().ToList();
+                string result = "";
+                foreach (var item in liststat)
                 {
                     var count = site.Links.Where(x => x.LinkStatus == item).Count();
                     result = $"{result}Status {item}={count} links;\n";
                 }
                 OnLog(this, $"Scan Links finished\n{result}");
+            }
+        }
+
+        private async void MIDoubleTitles_Click(object sender, RoutedEventArgs e)
+        {
+            scanner?.StopScan();
+            var w = new WindowComboBoxSelect();
+            using var context = new LocalContext();
+            w.CMBSelect.ItemsSource = await context.Sites.ToListAsync();
+            w.TXT.Text = w.Title = "Select site to continue scan";
+            if (w.ShowDialog() != true) return;
+            if (w.CMBSelect.SelectedItem is Site site)
+            {
+                OnLog(this, $"Anaise pages");
+                await context.Entry(site).Collection(x => x.Pages).LoadAsync();
+                List<Page> list = new();
+                var titles = site.Pages.Select(x => x.Title).Distinct().ToList();
+                foreach (var item in titles)
+                {
+                    var titl=site.Pages.Where(x=>x.MediaType?.Contains("text")==true).Where(x=>x.Title==item).ToList();
+                    if (titl.Count>1) list.AddRange(titl);
+                }
+                dataGrid.ItemsSource=list.OrderBy(x=>x.Title).ToList();
+                OnLog(this, $"Finished");
             }
         }
     }
