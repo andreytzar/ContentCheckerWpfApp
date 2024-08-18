@@ -14,9 +14,12 @@
         </Grid.RowDefinitions>
         <Menu>
             <MenuItem Header="Scan">
+                <Separator />
                 <MenuItem x:Name="MIFullSiteScan" Header="Full site scan" Click="MIFullSiteScan_Click"/>
                 <MenuItem x:Name="MIStopScan" Header="Stop scan" Click="MIStopScan_Click" />
-                <MenuItem x:Name="MIContinueScan" Header="Start scan" Click="MIContinueScan_Click"/>
+                <MenuItem x:Name="MIContinueScan" Header="Continue scan" Click="MIContinueScan_Click"/>
+                <Separator />
+                <MenuItem x:Name="MIScanEmptyTitle" Header="ReScan Page with Empty Title" Click="MIScanEmptyTitle_Click" />
             </MenuItem>
             <MenuItem Header="Data">
                 <MenuItem x:Name="MILoadSites" Header="LoadSites" Click="MILoadSites_Click" />
@@ -25,8 +28,14 @@
                 <Separator />
                 <MenuItem x:Name="MIDeleteSite" Header="Delete Site" Click="MIDeleteSite_Click"  />
             </MenuItem>
+            <MenuItem Header="Analise">
+                <MenuItem x:Name="MIFiltering" Header="Filtering" Click="MIFiltering_Click" />
+                <MenuItem x:Name="MITestLinks" Header="Test Link" Click="MITestLinks_Click"  />
+            </MenuItem>
         </Menu>
-        <DataGrid x:Name="dataGrid" Grid.Row="1"/>
+        <DataGrid x:Name="dataGrid" Grid.Row="1" LoadingRow="dataGrid_LoadingRow">
+
+        </DataGrid>
         <StatusBar Grid.Row="2">
             <StatusBarItem x:Name="SBStatus"/>
         </StatusBar>

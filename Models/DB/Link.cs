@@ -12,6 +12,7 @@ namespace ContentCheckerWpfApp.Models.DB
         public string Text { get; set; } = string.Empty;
         public bool NoFollow { get; set; } = false;
         public int PageId { get; set; }
+        public DateTime DateTested { get; set; }
         public int LinkStatus { get; set; }
         [ForeignKey("PageLinkId")]
         public virtual Page? Page { get; set; }

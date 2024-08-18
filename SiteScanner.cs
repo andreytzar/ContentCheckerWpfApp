@@ -3,6 +3,9 @@ using ContentCheckerWpfApp.Models.DB;
 using System.Net.Http;
 using HtmlAgilityPack;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+
 
 
 
@@ -26,7 +29,20 @@ namespace ContentCheckerWpfApp
             var uri = UriHelper.GetSiteUri(CurrentUrl);
             CurrentSite = await GetSite(uri);
         }
+        public async Task LoadSite(int id)
+        {
+            OnLog($"{DateTime.Now} Loading site id={id}");
+            using var context = new LocalContext();
+            CurrentSite = await context.Sites
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (CurrentSite == null) return;
+            OnLog($"Loading Pages {CurrentSite.AbsoluteUri}....");
+            await context.Entry(CurrentSite).Collection(x => x.Pages).LoadAsync();
+            OnLog($"Loading Links {CurrentSite.AbsoluteUri}.....");
+            await context.Entry(CurrentSite).Collection(x => x.Links).LoadAsync();
+            OnLog($"Loaded");
 
+        }
         public async Task StartScan()
         {
             Stop = false;
@@ -63,7 +79,16 @@ namespace ContentCheckerWpfApp
             OnLog($"{DateTime.Now} Stopping scan Site {CurrentUrl}");
             Stop = true;
         }
-
+        public async Task ScanEmptyTitle()
+        {
+            var emptylinks=CurrentSite.Pages.Where(x=>string.IsNullOrEmpty( x.Title)).ToList();
+            using var context = new LocalContext();
+            foreach (var page in emptylinks)
+            {
+                await ScanPage(context, CurrentSite, page.PathAndQuary, continuescan: true);
+            }
+            OnLog("Empty Title Rescanned!");
+        }
         public async Task<Page?> ScanPage(LocalContext context, Site site, string path, bool rescan = false, bool scanlinks = true, bool continuescan=false)
         {
             if (Stop) return null;
@@ -83,7 +108,7 @@ namespace ContentCheckerWpfApp
                 }
                 if (!continuescan && !rescan)
                 {
-                    if (site.Pages.FirstOrDefault(x => x.PathAndQuary == uri.OriginalString && x.Scanned!=null) != null)
+                    if (site.Pages.FirstOrDefault(x =>string.Equals( x.PathAndQuary, uri.OriginalString, StringComparison.Ordinal) && x.Scanned!=null) != null)
                     {
                         OnLog($"{DateTime.Now} Allready scanned {path}");
                         return null;
@@ -91,7 +116,7 @@ namespace ContentCheckerWpfApp
                 }
                 if (continuescan) continuescan = false;
                 var uripage = UriHelper.GetAbsoluteUri(site.AbsoluteUri, uri.OriginalString);
-                var page = site.Pages.FirstOrDefault(x => x.PathAndQuary == uri.OriginalString);
+                var page = site.Pages.FirstOrDefault(x => string.Equals(x.PathAndQuary, uri.OriginalString, StringComparison.Ordinal));
                 if (page == null) page = await context.AddPage(site, uri.OriginalString);
                 if (page == null)
                 {
@@ -102,11 +127,14 @@ namespace ContentCheckerWpfApp
                 site.CurrentPage = page.AbsoluteUrl;
                 using HttpClient client = new HttpClient();
                 HttpResponseMessage response = await client.GetAsync(page.AbsoluteUrl);
+                
                 page.StatusCode = (int)response.StatusCode;
                 await context.SaveChangesAsync();
                 if (response.IsSuccessStatusCode)
                 {
                     string pageContent = await response.Content.ReadAsStringAsync();
+                    page.MediaType=response.Content?.Headers?.ContentType?.MediaType;
+
                     HtmlDocument doc = new HtmlDocument();
                     doc.LoadHtml(pageContent);
                     page.Title = HtmlHelper.GetTitle(doc);
@@ -259,6 +287,18 @@ public static class HtmlHelper
         return res;
     }
 }
+
+public static class PropertyHelper
+{
+    public static List<PropertyInfo> GetNonCollectionProperties(Type type)
+    {
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                   .Where(p => !typeof(System.Collections.IEnumerable).IsAssignableFrom(p.PropertyType)
+                               || p.PropertyType == typeof(string))
+                   .ToList();
+    }
+}
+
 
 public class VMlink
 {

@@ -21,11 +21,12 @@ namespace ContentCheckerWpfApp.Models.DB
         public string OgImage { get => _OgImage; set { _OgImage = value; OnPropertyChanged(); } } 
         public int StatusCode { get => _StatusCode; set { _StatusCode = value; OnPropertyChanged(); } }
         public DateTime? Scanned { get => _Scanned; set { _Scanned = value; OnPropertyChanged(); } }
+        public string? MediaType { get; set; }=string.Empty;
         public int SiteId { get; set; }
         [ForeignKey("SiteId")]
         public virtual Site? Site { get; set; }
         
-        public int _Id { get; set; }
+        private int _Id { get; set; }
         private string _PathAndQuary { get; set; } = string.Empty;
         private string _AbsoluteUrl { get; set; } = string.Empty;
         private string _Title { get; set; } = string.Empty;
@@ -35,7 +36,7 @@ namespace ContentCheckerWpfApp.Models.DB
         private string _OgUrl { get; set; } = string.Empty;
         private string _OgImage { get; set; } = string.Empty;
         private int _StatusCode { get; set; }
-        public DateTime? _Scanned { get; set; } = null;
+        private DateTime? _Scanned { get; set; } = null;
 
 
 

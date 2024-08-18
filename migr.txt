@@ -1,0 +1,2 @@
+Add-Migration InitialCreate -Context LocalContext -Project ContentCheckerWpfApp -StartupProject ContentCheckerWpfApp
+Update-Database -Context LocalContext -Project ContentCheckerWpfApp -StartupProject ContentCheckerWpfApp

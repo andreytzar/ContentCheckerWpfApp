@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ContentCheckerWpfApp.Dialogs"
         mc:Ignorable="d"
-        Title="WindowComboBoxSelect" Height="200" Width="300">
+        Title="WindowComboBoxSelect" Height="200" Width="300" WindowStartupLocation="CenterScreen">
 
     <Grid Margin="8">
         <Grid.RowDefinitions>
