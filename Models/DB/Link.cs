@@ -19,5 +19,6 @@ namespace ContentCheckerWpfApp.Models.DB
         public int SiteId { get; set; }
         [ForeignKey("SiteLinkId")]
         public virtual Site? Site { get; set; }
+        public string? MediaType { get; set; } = string.Empty;
     }
 }

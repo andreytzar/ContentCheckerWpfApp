@@ -30,8 +30,11 @@
             </MenuItem>
             <MenuItem Header="Analise">
                 <MenuItem x:Name="MIFiltering" Header="Filtering" Click="MIFiltering_Click" />
-                <MenuItem x:Name="MITestLinks" Header="Test Link" Click="MITestLinks_Click"  />
+              
                 <MenuItem x:Name="MIDoubleTitles" Header="Double Title" Click="MIDoubleTitles_Click"  />
+                <Separator/>
+                <MenuItem x:Name="MITestLinks" Header="Test Link" Click="MITestLinks_Click"/>
+                <MenuItem x:Name="MITestLinksFrom" Header="Test Links From List" Click="MITestLinksFrom_Click"/>
             </MenuItem>
         </Menu>
         <DataGrid x:Name="dataGrid" Grid.Row="1" LoadingRow="dataGrid_LoadingRow">

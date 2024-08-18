@@ -205,7 +205,7 @@ namespace ContentCheckerWpfApp
                         }
 
                         HttpResponseMessage response = await client.GetAsync(uri);
-                        var type = response.Content.Headers?.ContentType?.MediaType;
+                        var type =link.MediaType= response.Content.Headers?.ContentType?.MediaType;
                         link.LinkStatus = (int)response.StatusCode;
                         OnLog(this, $"{i} from {site.Links.Count} {type} {link.LinkStatus} {uri}");
                         i++;
@@ -246,11 +246,48 @@ namespace ContentCheckerWpfApp
                 var titles = site.Pages.Select(x => x.Title).Distinct().ToList();
                 foreach (var item in titles)
                 {
-                    var titl=site.Pages.Where(x=>x.MediaType?.Contains("text")==true).Where(x=>x.Title==item).ToList();
-                    if (titl.Count>1) list.AddRange(titl);
+                    var titl = site.Pages.Where(x => x.MediaType?.Contains("text") == true).Where(x => x.Title == item).ToList();
+                    if (titl.Count > 1) list.AddRange(titl);
                 }
-                dataGrid.ItemsSource=list.OrderBy(x=>x.Title).ToList();
+                dataGrid.ItemsSource = list.OrderBy(x => x.Title).ToList();
                 OnLog(this, $"Finished");
+            }
+        }
+
+        private async void MITestLinksFrom_Click(object sender, RoutedEventArgs e)
+        {
+            var w = new WindowInputText();
+            w.TXT.Text = w.Title = "Paste list links from ClipBoard. Links separator - Enter (\\n)";
+            if (w.ShowDialog() != true) return;
+            var list = new List<string>(w.TXTInput.Text.Split('\n'));
+            ObservableCollection<Link> links = new ObservableCollection<Link>();
+            dataGrid.ItemsSource = links;
+            OnLog(this, $"Starting scan {list.Count} links");
+            using HttpClient client = new();
+            int i = 1;
+            foreach (var item in list)
+            {
+                var link = new Link() { Href = item, DateTested=DateTime.Now };
+                try
+                {
+                    var uri = UriHelper.CreateUri(link.Href);
+                    if (!uri.IsAbsoluteUri)
+                        link.MediaType = "Bad LINK";
+                    else
+                    {
+                        HttpResponseMessage response = await client.GetAsync(uri);
+                        var type = link.MediaType = response.Content.Headers?.ContentType?.MediaType;
+                        link.LinkStatus = (int)response.StatusCode;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    link.MediaType = "ERROR LINK";
+                    OnLog(this, $"Exception on Link {link.Href}:\n{ex.Message}");
+                }
+                links.Add(link);
+                OnLog(this, $"{i} from {list.Count} {link.MediaType} {link.LinkStatus} {link.Href}");
+                i++;
             }
         }
     }
