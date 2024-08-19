@@ -227,6 +227,10 @@ namespace ContentCheckerWpfApp
                     result = $"{result}Status {item}={count} links;\n";
                 }
                 OnLog(this, $"Scan Links finished\n{result}");
+                var wi = new WindowInputText();
+                wi.TXT.Text = wi.Title = "Result";
+                wi.TXTInput.Text=result;
+                wi.Show();
             }
         }
 
