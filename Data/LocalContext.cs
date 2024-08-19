@@ -42,13 +42,9 @@ namespace ContentCheckerWpfApp.Data
         public async Task<Page?> AddPage(Site site, string path)
         {
             if (site == null) return null;
-            if (!Entry(site).IsKeySet)
-                Add(site);
-            else
-                Attach(site);
-
+            Attach(site);
             var page = new Page() { PathAndQuary = path, SiteId = site.Id, Site = site };
-            Add(page);
+            Pages.Add(page);
             site.Pages.Add(page);
             await SaveChangesAsync();
             return page;

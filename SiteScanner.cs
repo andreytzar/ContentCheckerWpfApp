@@ -163,9 +163,8 @@ namespace ContentCheckerWpfApp
                             await context.SaveChangesAsync();
                             if (!link.NoFollow)
                             {
-                                    OnLog($"{DateTime.Now} Scan link {link.Href}");
+                                   OnLog($"{DateTime.Now} Scan link {link.Href}");
                                    await ScanPage(context, site, link.Href, rescan, scanlinks);
-
                             }
                             else { OnLog($"{DateTime.Now} NoFollow link {link.Href}"); }
                         }

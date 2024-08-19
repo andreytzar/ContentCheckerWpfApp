@@ -33,8 +33,12 @@
               
                 <MenuItem x:Name="MIDoubleTitles" Header="Double Title" Click="MIDoubleTitles_Click"  />
                 <Separator/>
+                             
+            </MenuItem>
+            <MenuItem Header="Links">
                 <MenuItem x:Name="MITestLinks" Header="Test Link" Click="MITestLinks_Click"/>
                 <MenuItem x:Name="MITestLinksFrom" Header="Test Links From List" Click="MITestLinksFrom_Click"/>
+                <MenuItem x:Name="MIScanPageFromLocalList" Header="Scan List Local Path for Site" Click="MIScanPageFromLocalList_Click" />
             </MenuItem>
         </Menu>
         <DataGrid x:Name="dataGrid" Grid.Row="1" LoadingRow="dataGrid_LoadingRow">

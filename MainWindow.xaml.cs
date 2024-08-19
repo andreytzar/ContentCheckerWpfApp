@@ -290,5 +290,34 @@ namespace ContentCheckerWpfApp
                 i++;
             }
         }
+
+        private async void MIScanPageFromLocalList_Click(object sender, RoutedEventArgs e)
+        {
+            scanner?.StopScan();
+            var w = new WindowComboBoxSelect();
+            using var context = new LocalContext();
+            w.CMBSelect.ItemsSource = await context.Sites.ToListAsync();
+            w.TXT.Text = w.Title = "Select site to continue scan";
+            if (w.ShowDialog() != true) return;
+            if (w.CMBSelect.SelectedItem is Site site)
+            {
+                var wi = new WindowInputText();
+                wi.TXT.Text = wi.Title = "Paste list Local Paths from ClipBoard. Links separator - Enter (\\n)";
+                if (wi.ShowDialog() != true) return;
+                var list = new List<string>(wi.TXTInput.Text.Split('\n'));
+                scanner = new(site.AbsoluteUri);
+                scanner.LogDelegate += OnLog;
+                OnLog(this, "Loading site pages and Link");
+                await context.Entry(site).Collection(x => x.Pages).LoadAsync();
+                await context.Entry(site).Collection(x => x.Links).LoadAsync();
+                context.Attach(site);
+                foreach (var item in list)
+                {
+                    string path= Regex.Replace(item, @"[\x00-\x1F\x7F]", string.Empty);
+                    await scanner.ScanPage(context, site, path, continuescan: true);
+                }
+                OnLog(this, "Finish");
+            }
+        }
     }
 }

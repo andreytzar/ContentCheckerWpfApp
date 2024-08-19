@@ -12,8 +12,8 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <DockPanel LastChildFill="False">
-            <TextBlock x:Name="TXT" DockPanel.Dock="Top"/>
-            <TextBox x:Name="TXTInput" DockPanel.Dock="Top" AcceptsTab="True" AcceptsReturn="True" TextWrapping="Wrap" MinLines="3"/>
+            <TextBlock x:Name="TXT" DockPanel.Dock="Top" TextWrapping="Wrap"/>
+            <TextBox x:Name="TXTInput" DockPanel.Dock="Top" AcceptsTab="True" AcceptsReturn="True" TextWrapping="Wrap" MinLines="3" VerticalScrollBarVisibility="Auto"/>
         </DockPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
             <Button x:Name="BTNOk" Content="OK" Width="50" Click="BTNOk_Click" IsDefault="True"/>

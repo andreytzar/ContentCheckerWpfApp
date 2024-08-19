@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <DockPanel LastChildFill="False">
             <TextBlock x:Name="TXT" DockPanel.Dock="Top"/>
-            <ComboBox x:Name="CMBSelect" DockPanel.Dock="Top"/>
+            <ComboBox x:Name="CMBSelect" DockPanel.Dock="Top" SelectedIndex="0"/>
         </DockPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
             <Button x:Name="BTNOk" Content="OK" Width="50" Click="BTNOk_Click" IsDefault="True"/>
