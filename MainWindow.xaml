@@ -43,7 +43,7 @@
                 <MenuItem x:Name="MIScanPageFromLocalList" Header="Scan List Local Path for Site" Click="MIScanPageFromLocalList_Click" />
             </MenuItem>
         </Menu>
-        <DataGrid x:Name="dataGrid" Grid.Row="1" LoadingRow="dataGrid_LoadingRow">
+        <DataGrid x:Name="dataGrid" Grid.Row="1" LoadingRow="dataGrid_LoadingRow" Loaded="dataGrid_Loaded">>
 
         </DataGrid>
         <StatusBar Grid.Row="2">

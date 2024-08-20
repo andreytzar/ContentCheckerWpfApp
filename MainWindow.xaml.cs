@@ -1,5 +1,4 @@
-﻿using Azure;
-using ContentCheckerWpfApp.Data;
+﻿using ContentCheckerWpfApp.Data;
 using ContentCheckerWpfApp.Dialogs;
 using ContentCheckerWpfApp.Models;
 using ContentCheckerWpfApp.Models.DB;
@@ -15,16 +14,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using System.Linq;
 using Page = ContentCheckerWpfApp.Models.DB.Page;
+using System.Windows.Data;
 
 namespace ContentCheckerWpfApp
 {
@@ -33,12 +28,10 @@ namespace ContentCheckerWpfApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        ObservableCollection<object> collection;
+        ObservableCollection<object> collection=new();
         public MainWindow()
         {
             InitializeComponent();
-            collection = new();
-            dataGrid.ItemsSource = collection;
         }
 
 
@@ -357,38 +350,75 @@ namespace ContentCheckerWpfApp
         {
             try
             {
+                if (dataGrid.ItemsSource == null) return;
                 var sb = new StringBuilder();
                 var headers = dataGrid.Columns.Select(column => column.Header.ToString());
                 sb.AppendLine(string.Join(",", headers));
-                foreach (var item in dataGrid.Items)
+
+                var items = dataGrid.ItemsSource.Cast<object>();
+                foreach (var item in items)
                 {
-                    var row = dataGrid.Columns.Select(column =>
+                    var row = new List<string>();
+                    foreach (var column in dataGrid.Columns)
                     {
-                        var cellContent = column.GetCellContent(item);
-                        return (cellContent as TextBlock)?.Text ?? string.Empty;
-                    });
+                        if (column is DataGridBoundColumn boundColumn)
+                        {
+                            var binding = boundColumn.Binding as Binding;
+                            var bindingPath = binding?.Path?.Path;
+                            if (!string.IsNullOrEmpty(bindingPath))
+                            {
+                                var property = item.GetType().GetProperty(bindingPath);
+                                var value = property?.GetValue(item, null)?.ToString() ?? string.Empty;
+                                value = EscapeCsvValue(value);
+                                row.Add(value);
+                            }
+                        }
+                        else
+                        {
+                            row.Add(string.Empty);
+                        }
+                    }
                     sb.AppendLine(string.Join(",", row));
                 }
                 File.WriteAllText(filePath, sb.ToString());
             }
             catch (Exception ex) { var e = ex; }
         }
+        private string EscapeCsvValue(string value)
+        {
+            if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
+            {
+                value = $"\"{value.Replace("\"", "\"\"")}\"";
+            }
+            return value;
+        }
         public void SaveDataGridToXml(DataGrid dataGrid, string filePath)
         {
             try
             {
-                ForceLoadData(dataGrid);
+                if (dataGrid.ItemsSource == null) return;
                 var root = new XElement("Rows");
-                foreach (var item in dataGrid.Items)
+                var items = dataGrid.ItemsSource.Cast<object>();
+                foreach (var item in items)
                 {
                     var rowElement = new XElement("Row");
+
                     foreach (var column in dataGrid.Columns)
                     {
-                        var cellContent = column.GetCellContent(item) as TextBlock;
-                        var cellValue = cellContent != null ? cellContent.Text : string.Empty;
-                        var columnName = column.Header.ToString();
-                        var cellElement = new XElement(columnName, cellValue);
-                        rowElement.Add(cellElement);
+                        if (column is DataGridBoundColumn boundColumn)
+                        {
+                            var binding = boundColumn.Binding as Binding;
+                            var bindingPath = binding?.Path?.Path;
+
+                            if (!string.IsNullOrEmpty(bindingPath))
+                            {
+                                var property = item.GetType().GetProperty(bindingPath);
+                                var value = property?.GetValue(item, null)?.ToString() ?? string.Empty;
+                                var columnName = column.Header.ToString();
+                                var cellElement = new XElement(columnName, value);
+                                rowElement.Add(cellElement);
+                            }
+                        }
                     }
                     root.Add(rowElement);
                 }
@@ -398,17 +428,11 @@ namespace ContentCheckerWpfApp
             catch (Exception ex) { var e = ex; }
         }
 
-        public void ForceLoadData(DataGrid dataGrid)
+        private void dataGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            dataGrid.UpdateLayout();
-            foreach (var item in dataGrid.Items)
-            {
-                var row = dataGrid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
-                if (row != null)
-                {
-                    row.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-                }
-            }
+            collection = new();
+            dataGrid.Items?.Clear();
+            dataGrid.ItemsSource = collection;
         }
     }
 }
