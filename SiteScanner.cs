@@ -5,6 +5,7 @@ using HtmlAgilityPack;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System;
 
 
 
@@ -67,10 +68,10 @@ namespace ContentCheckerWpfApp
         {
             Stop = false;
             OnLog($"{DateTime.Now} Continue Site {CurrentUrl}");
-            CurrentSite =await GetSite(CurrentUrl);
+            CurrentSite = await GetSite(CurrentUrl);
             using var context = new LocalContext();
             context.Attach(CurrentSite);
-            await ScanPage(context, CurrentSite, CurrentSite.CurrentPage, continuescan:true);
+            await ScanPage(context, CurrentSite, CurrentSite.CurrentPage, continuescan: true);
             OnLog($"{DateTime.Now} Full Scan");
         }
 
@@ -81,7 +82,7 @@ namespace ContentCheckerWpfApp
         }
         public async Task ScanEmptyTitle()
         {
-            var emptylinks=CurrentSite.Pages.Where(x=>string.IsNullOrEmpty( x.Title)).ToList();
+            var emptylinks = CurrentSite.Pages.Where(x => string.IsNullOrEmpty(x.Title)).ToList();
             using var context = new LocalContext();
             foreach (var page in emptylinks)
             {
@@ -89,12 +90,13 @@ namespace ContentCheckerWpfApp
             }
             OnLog("Empty Title Rescanned!");
         }
-        public async Task<Page?> ScanPage(LocalContext context, Site site, string path, bool rescan = false, bool scanlinks = true, bool continuescan=false)
+        public async Task<Page?> ScanPage(LocalContext context, Site site, string path, bool rescan = false, bool scanlinks = true, bool continuescan = false)
         {
             if (Stop) return null;
             OnLog($"{DateTime.Now} Scan Page {path}");
             try
             {
+
                 var uri = UriHelper.CreateUri(path);
                 if (uri == null) return null;
                 if (uri.IsAbsoluteUri)
@@ -108,12 +110,13 @@ namespace ContentCheckerWpfApp
                 }
                 if (!continuescan && !rescan)
                 {
-                    if (site.Pages.FirstOrDefault(x =>string.Equals( x.PathAndQuary, uri.OriginalString, StringComparison.Ordinal) && x.Scanned!=null) != null)
+                    if (site.Pages.FirstOrDefault(x => string.Equals(x.PathAndQuary, uri.OriginalString, StringComparison.Ordinal) && x.Scanned != null) != null)
                     {
                         OnLog($"{DateTime.Now} Allready scanned {path}");
                         return null;
                     }
                 }
+
                 if (continuescan) continuescan = false;
                 var uripage = UriHelper.GetAbsoluteUri(site.AbsoluteUri, uri.OriginalString);
                 var page = site.Pages.FirstOrDefault(x => string.Equals(x.PathAndQuary, uri.OriginalString, StringComparison.Ordinal));
@@ -125,15 +128,19 @@ namespace ContentCheckerWpfApp
                 }
                 page.AbsoluteUrl = uripage.AbsoluteUri;
                 site.CurrentPage = page.AbsoluteUrl;
+                page.MediaType = "Try test page";
+                context.Update(page);
+                context.Update(site);
+                await context.SaveChangesAsync();
                 using HttpClient client = new HttpClient();
                 HttpResponseMessage response = await client.GetAsync(page.AbsoluteUrl);
-                
+
                 page.StatusCode = (int)response.StatusCode;
                 await context.SaveChangesAsync();
                 if (response.IsSuccessStatusCode)
                 {
                     string pageContent = await response.Content.ReadAsStringAsync();
-                    page.MediaType=response.Content?.Headers?.ContentType?.MediaType;
+                    page.MediaType = response.Content?.Headers?.ContentType?.MediaType;
 
                     HtmlDocument doc = new HtmlDocument();
                     doc.LoadHtml(pageContent);
@@ -148,11 +155,20 @@ namespace ContentCheckerWpfApp
                     {
                         var links = HtmlHelper.GetLinks(doc);
                         page.Links.Clear();
-                        foreach (var item in links) 
+                        foreach (var item in links)
                         {
                             if (Stop) return null;
-                            Link link = new Link() { Href=item.Href, Text=item.Text, NoFollow=item.NoFollow
-                            , PageId=page.Id, Page=page, SiteId=site.Id, Site=site};
+                            Link link = new Link()
+                            {
+                                Href = item.Href,
+                                Text = item.Text,
+                                NoFollow = item.NoFollow
+                            ,
+                                PageId = page.Id,
+                                Page = page,
+                                SiteId = site.Id,
+                                Site = site
+                            };
                             if (site.Links.FirstOrDefault(x => x.Href == link.Href) != null) continue;
                             context.Add(link);
                             page.Links.Add(link);
@@ -163,13 +179,13 @@ namespace ContentCheckerWpfApp
                             await context.SaveChangesAsync();
                             if (!link.NoFollow)
                             {
-                                   OnLog($"{DateTime.Now} Scan link {link.Href}");
-                                   await ScanPage(context, site, link.Href, rescan, scanlinks);
+                                OnLog($"{DateTime.Now} Scan link {link.Href}");
+                                await ScanPage(context, site, link.Href, rescan, scanlinks);
                             }
                             else { OnLog($"{DateTime.Now} NoFollow link {link.Href}"); }
                         }
                     }
-                    
+
                 }
                 else OnLog($"{DateTime.Now} Error code {response.StatusCode} read {path} ");
                 context.Update(page);
@@ -268,13 +284,13 @@ public static class HtmlHelper
 
     public static List<VMlink> GetLinks(HtmlDocument html)
     {
-        var res= new List<VMlink>();
+        var res = new List<VMlink>();
         var linkNodes = html.DocumentNode.SelectNodes("//a[@href]");
         if (linkNodes != null)
         {
             foreach (var linkNode in linkNodes)
             {
-                var link= new VMlink();
+                var link = new VMlink();
                 string rel = linkNode.GetAttributeValue("rel", string.Empty);
                 link.NoFollow = rel.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                                      .Contains("nofollow", StringComparer.OrdinalIgnoreCase);
@@ -303,6 +319,6 @@ public class VMlink
 {
     public string Href { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
-    public bool NoFollow { get; set; }=false;
+    public bool NoFollow { get; set; } = false;
 }
 

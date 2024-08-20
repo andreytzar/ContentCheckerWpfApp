@@ -4,7 +4,9 @@ using ContentCheckerWpfApp.Dialogs;
 using ContentCheckerWpfApp.Models;
 using ContentCheckerWpfApp.Models.DB;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Http;
@@ -20,6 +22,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 using Page = ContentCheckerWpfApp.Models.DB.Page;
 
 namespace ContentCheckerWpfApp
@@ -205,7 +209,7 @@ namespace ContentCheckerWpfApp
                         }
 
                         HttpResponseMessage response = await client.GetAsync(uri);
-                        var type =link.MediaType= response.Content.Headers?.ContentType?.MediaType;
+                        var type = link.MediaType = response.Content.Headers?.ContentType?.MediaType;
                         link.LinkStatus = (int)response.StatusCode;
                         OnLog(this, $"{i} from {site.Links.Count} {type} {link.LinkStatus} {uri}");
                         i++;
@@ -229,8 +233,8 @@ namespace ContentCheckerWpfApp
                 OnLog(this, $"Scan Links finished\n{result}");
                 var wi = new WindowInputText();
                 wi.TXT.Text = wi.Title = "Result";
-                wi.TXTInput.Text=result;
-                wi.Show();
+                wi.TXTInput.Text = result;
+                wi.ShowDialog();
             }
         }
 
@@ -271,7 +275,7 @@ namespace ContentCheckerWpfApp
             int i = 1;
             foreach (var item in list)
             {
-                var link = new Link() { Href = item, DateTested=DateTime.Now };
+                var link = new Link() { Href = item, DateTested = DateTime.Now };
                 try
                 {
                     var uri = UriHelper.CreateUri(link.Href);
@@ -317,10 +321,93 @@ namespace ContentCheckerWpfApp
                 context.Attach(site);
                 foreach (var item in list)
                 {
-                    string path= Regex.Replace(item, @"[\x00-\x1F\x7F]", string.Empty);
+                    string path = Regex.Replace(item, @"[\x00-\x1F\x7F]", string.Empty);
                     await scanner.ScanPage(context, site, path, continuescan: true);
                 }
                 OnLog(this, "Finish");
+            }
+        }
+        private void MISaveData_Click(object sender, RoutedEventArgs e)
+        {
+            var diag = new SaveFileDialog()
+            {
+                Filter = "CSV files (*.csv)|*.csv|XML files (*.xml)|*.xml",
+                DefaultExt = "csv",
+                FileName = "data"
+            };
+            if (diag.ShowDialog() != true) return;
+            string filePath = diag.FileName;
+            string extension = System.IO.Path.GetExtension(filePath).ToLower();
+
+            // Сохраняем файл в зависимости от расширения
+            if (extension == ".csv")
+            {
+                SaveDataGridToCsv(dataGrid, filePath);
+            }
+            else if (extension == ".xml")
+            {
+                SaveDataGridToXml(dataGrid, filePath);
+            }
+            else
+            {
+                MessageBox.Show("Unsupported file format.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        public void SaveDataGridToCsv(DataGrid dataGrid, string filePath)
+        {
+            try
+            {
+                var sb = new StringBuilder();
+                var headers = dataGrid.Columns.Select(column => column.Header.ToString());
+                sb.AppendLine(string.Join(",", headers));
+                foreach (var item in dataGrid.Items)
+                {
+                    var row = dataGrid.Columns.Select(column =>
+                    {
+                        var cellContent = column.GetCellContent(item);
+                        return (cellContent as TextBlock)?.Text ?? string.Empty;
+                    });
+                    sb.AppendLine(string.Join(",", row));
+                }
+                File.WriteAllText(filePath, sb.ToString());
+            }
+            catch (Exception ex) { var e = ex; }
+        }
+        public void SaveDataGridToXml(DataGrid dataGrid, string filePath)
+        {
+            try
+            {
+                ForceLoadData(dataGrid);
+                var root = new XElement("Rows");
+                foreach (var item in dataGrid.Items)
+                {
+                    var rowElement = new XElement("Row");
+                    foreach (var column in dataGrid.Columns)
+                    {
+                        var cellContent = column.GetCellContent(item) as TextBlock;
+                        var cellValue = cellContent != null ? cellContent.Text : string.Empty;
+                        var columnName = column.Header.ToString();
+                        var cellElement = new XElement(columnName, cellValue);
+                        rowElement.Add(cellElement);
+                    }
+                    root.Add(rowElement);
+                }
+                var xDocument = new XDocument(root);
+                xDocument.Save(filePath);
+            }
+            catch (Exception ex) { var e = ex; }
+        }
+
+        public void ForceLoadData(DataGrid dataGrid)
+        {
+            dataGrid.UpdateLayout();
+            foreach (var item in dataGrid.Items)
+            {
+                var row = dataGrid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+                if (row != null)
+                {
+                    row.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ namespace ContentCheckerWpfApp.Dialogs
 
         private void BTNOk_Click(object sender, RoutedEventArgs e)
         {
+            
             this.DialogResult=true; Close();
         }
 

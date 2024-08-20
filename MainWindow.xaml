@@ -21,16 +21,18 @@
                 <Separator />
                 <MenuItem x:Name="MIScanEmptyTitle" Header="ReScan Page with Empty Title" Click="MIScanEmptyTitle_Click" />
             </MenuItem>
-            <MenuItem Header="Data">
+            <MenuItem Header="Data" >
+                <MenuItem x:Name="MIFiltering" Header="Filtering" Click="MIFiltering_Click" />
+                <Separator />
                 <MenuItem x:Name="MILoadSites" Header="LoadSites" Click="MILoadSites_Click" />
                 <MenuItem x:Name="MILoadPages" Header="LoadPages" Click="MILoadPages_Click" />
                 <MenuItem x:Name="MILoadLinks" Header="LoadLinks" Click="MILoadLinks_Click" />
                 <Separator />
+                <MenuItem x:Name="MISaveData" Header="Save As Data to xml or csv" Click="MISaveData_Click" />
+                <Separator />
                 <MenuItem x:Name="MIDeleteSite" Header="Delete Site" Click="MIDeleteSite_Click"  />
             </MenuItem>
             <MenuItem Header="Analise">
-                <MenuItem x:Name="MIFiltering" Header="Filtering" Click="MIFiltering_Click" />
-              
                 <MenuItem x:Name="MIDoubleTitles" Header="Double Title" Click="MIDoubleTitles_Click"  />
                 <Separator/>
                              
